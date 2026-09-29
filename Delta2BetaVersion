@@ -1,0 +1,1133 @@
+-- WAVE EXECUTOR STYLE GUI (CENTERED, CLEAN, NO DEFAULT TEXT)
+-- Compatible with external Roblox executors (Delta, Solara, Wave, etc.)
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local LOGO_IMAGE = "rbxassetid://12730597972"
+
+local old = playerGui:FindFirstChild("PureWaveExecutor")
+if old then old:Destroy() end
+
+local accent = Color3.fromRGB(168, 85, 247) -- Wave Purple Accent
+local darkBg = Color3.fromRGB(18, 16, 24)
+local panelBg = Color3.fromRGB(13, 11, 18)
+local editorBg = Color3.fromRGB(10, 8, 14)
+local white = Color3.fromRGB(240, 242, 255)
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "PureWaveExecutor"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = playerGui
+
+-- Responsive scaling
+local scale = Instance.new("UIScale")
+scale.Parent = gui
+
+local function updateScale()
+    local camera = workspace.CurrentCamera
+    if camera then
+        local v = camera.ViewportSize
+        scale.Scale = math.min(1, v.X / 750, v.Y / 420)
+    end
+end
+
+updateScale()
+if workspace.CurrentCamera then
+    workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale)
+end
+
+-- Main Window (720x380) - Positioned in the MIDDLE of the screen (X: 0.5, Y: 0.5)
+local main = Instance.new("Frame")
+main.Name = "MainFrame"
+main.Size = UDim2.fromOffset(720, 380)
+main.Position = UDim2.fromScale(0.5, 0.5)
+main.AnchorPoint = Vector2.new(0.5, 0.5)
+main.BackgroundColor3 = panelBg
+main.BackgroundTransparency = 0
+main.BorderSizePixel = 0
+main.Visible = false
+main.ClipsDescendants = true
+main.Parent = gui
+
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 10)
+
+local outline = Instance.new("UIStroke")
+outline.Color = Color3.fromRGB(45, 35, 60)
+outline.Thickness = 1.5
+outline.Parent = main
+
+-- Top Navigation / Header Bar
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1, 0, 0, 38)
+header.BackgroundColor3 = darkBg
+header.BorderSizePixel = 0
+header.Parent = main
+Instance.new("UICorner", header).CornerRadius = UDim.new(0, 10)
+
+-- Wave Logo/Brand text
+local brand = Instance.new("TextLabel")
+brand.Position = UDim2.fromOffset(12, 0)
+brand.Size = UDim2.new(0, 30, 1, 0)
+brand.BackgroundTransparency = 1
+brand.Text = "W"
+brand.TextColor3 = accent
+brand.TextSize = 16
+brand.Font = Enum.Font.GothamBold
+brand.TextXAlignment = Enum.TextXAlignment.Left
+brand.Parent = header
+
+-- Top Nav Tabs container
+local navTabsContainer = Instance.new("Frame")
+navTabsContainer.Position = UDim2.fromOffset(45, 0)
+navTabsContainer.Size = UDim2.new(1, -150, 1, 0)
+navTabsContainer.BackgroundTransparency = 1
+navTabsContainer.Parent = header
+
+local navLayout = Instance.new("UIListLayout")
+navLayout.FillDirection = Enum.FillDirection.Horizontal
+navLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+navLayout.SortOrder = Enum.SortOrder.LayoutOrder
+navLayout.Padding = UDim.new(0, 6)
+navLayout.Parent = navTabsContainer
+
+-- Window Controls (Minimize, Maximize, Close)
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.fromOffset(28, 28)
+closeBtn.Position = UDim2.new(1, -34, 0, 5)
+closeBtn.BackgroundTransparency = 1
+closeBtn.Text = "×"
+closeBtn.TextColor3 = Color3.fromRGB(160, 150, 180)
+closeBtn.TextSize = 18
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.Parent = header
+
+local maxBtn = Instance.new("TextButton")
+maxBtn.Size = UDim2.fromOffset(28, 28)
+maxBtn.Position = UDim2.new(1, -62, 0, 5)
+maxBtn.BackgroundTransparency = 1
+maxBtn.Text = "□"
+maxBtn.TextColor3 = Color3.fromRGB(160, 150, 180)
+maxBtn.TextSize = 12
+maxBtn.Font = Enum.Font.GothamBold
+maxBtn.Parent = header
+
+local minBtn = Instance.new("TextButton")
+minBtn.Size = UDim2.fromOffset(28, 28)
+minBtn.Position = UDim2.new(1, -90, 0, 5)
+minBtn.BackgroundTransparency = 1
+minBtn.Text = "-"
+minBtn.TextColor3 = Color3.fromRGB(160, 150, 180)
+minBtn.TextSize = 14
+minBtn.Font = Enum.Font.GothamBold
+minBtn.Parent = header
+
+
+-- Pages Container
+local container = Instance.new("Frame")
+container.Position = UDim2.fromOffset(0, 38)
+container.Size = UDim2.new(1, 0, 1, -38)
+container.BackgroundTransparency = 1
+container.Parent = main
+
+-- ================= PAGE 1: HOME (10 STEPS TO LUA & ROBLOX STUDIO MASTERY) =================
+local homePage = Instance.new("Frame")
+homePage.Size = UDim2.new(1, 0, 1, 0)
+homePage.BackgroundTransparency = 1
+homePage.Visible = false
+homePage.Parent = container
+
+local homeWelcome = Instance.new("TextLabel")
+homeWelcome.Position = UDim2.fromOffset(16, 12)
+homeWelcome.Size = UDim2.new(1, -32, 0, 22)
+homeWelcome.BackgroundTransparency = 1
+homeWelcome.Text = "10 Essential Steps to Lua & Roblox Studio"
+homeWelcome.TextColor3 = white
+homeWelcome.TextSize = 15
+homeWelcome.Font = Enum.Font.GothamBold
+homeWelcome.TextXAlignment = Enum.TextXAlignment.Left
+homeWelcome.Parent = homePage
+
+-- Course Learning Card Container
+local courseCard = Instance.new("Frame")
+courseCard.Position = UDim2.fromOffset(16, 38)
+courseCard.Size = UDim2.new(1, -32, 1, -50)
+courseCard.BackgroundColor3 = Color3.fromRGB(14, 11, 20)
+courseCard.BorderSizePixel = 0
+courseCard.Parent = homePage
+Instance.new("UICorner", courseCard).CornerRadius = UDim.new(0, 8)
+
+local courseStroke = Instance.new("UIStroke")
+courseStroke.Color = Color3.fromRGB(45, 35, 60)
+courseStroke.Parent = courseCard
+
+-- Step Indicator Title
+local stepTitle = Instance.new("TextLabel")
+stepTitle.Position = UDim2.fromOffset(14, 12)
+stepTitle.Size = UDim2.new(1, -28, 0, 20)
+stepTitle.BackgroundTransparency = 1
+stepTitle.Text = "Step 1/10: Introduction to Output & Printing"
+stepTitle.TextColor3 = accent
+stepTitle.TextSize = 12
+stepTitle.Font = Enum.Font.GothamBold
+stepTitle.TextXAlignment = Enum.TextXAlignment.Left
+stepTitle.Parent = courseCard
+
+-- Explanation Description Label
+local stepDesc = Instance.new("TextLabel")
+stepDesc.Position = UDim2.fromOffset(14, 34)
+stepDesc.Size = UDim2.new(1, -28, 0, 42)
+stepDesc.BackgroundTransparency = 1
+stepDesc.Text = "The 'print()' function writes text to the developer console. It's the most basic and essential way to check if your code is executing properly."
+stepDesc.TextColor3 = Color3.fromRGB(200, 190, 220)
+stepDesc.TextSize = 11
+stepDesc.Font = Enum.Font.Gotham
+stepDesc.TextXAlignment = Enum.TextXAlignment.Left
+stepDesc.TextYAlignment = Enum.TextYAlignment.Top
+stepDesc.TextWrapped = true
+stepDesc.Parent = courseCard
+
+-- Code Snippet Box preview
+local codePreviewBox = Instance.new("TextBox")
+codePreviewBox.Position = UDim2.fromOffset(14, 80)
+codePreviewBox.Size = UDim2.new(1, -28, 0, 110)
+codePreviewBox.BackgroundColor3 = Color3.fromRGB(9, 7, 13)
+codePreviewBox.BorderSizePixel = 0
+codePreviewBox.MultiLine = true
+codePreviewBox.TextEditable = false
+codePreviewBox.Text = "print(\"Hello, Roblox Developer!\")\n-- Click 'Load into Editor' to test this script out."
+codePreviewBox.TextColor3 = Color3.fromRGB(210, 195, 240)
+codePreviewBox.TextSize = 11
+codePreviewBox.Font = Enum.Font.Code
+codePreviewBox.TextXAlignment = Enum.TextXAlignment.Left
+codePreviewBox.TextYAlignment = Enum.TextYAlignment.Top
+codePreviewBox.Parent = courseCard
+Instance.new("UICorner", codePreviewBox).CornerRadius = UDim.new(0, 5)
+
+local codePadding = Instance.new("UIPadding")
+codePadding.PaddingLeft = UDim.new(0, 8)
+codePadding.PaddingTop = UDim.new(0, 8)
+codePadding.Parent = codePreviewBox
+
+-- Navigation Buttons (Prev / Next / Load to Editor)
+local prevStepBtn = Instance.new("TextButton")
+prevStepBtn.Position = UDim2.fromOffset(14, 202)
+prevStepBtn.Size = UDim2.new(0, 90, 0, 26)
+prevStepBtn.BackgroundColor3 = Color3.fromRGB(24, 20, 32)
+prevStepBtn.Text = "◄ Previous"
+prevStepBtn.TextColor3 = white
+prevStepBtn.TextSize = 10
+prevStepBtn.Font = Enum.Font.GothamBold
+prevStepBtn.Parent = courseCard
+Instance.new("UICorner", prevStepBtn).CornerRadius = UDim.new(0, 5)
+
+local nextStepBtn = Instance.new("TextButton")
+nextStepBtn.Position = UDim2.fromOffset(110, 202)
+nextStepBtn.Size = UDim2.new(0, 90, 0, 26)
+nextStepBtn.BackgroundColor3 = Color3.fromRGB(24, 20, 32)
+nextStepBtn.Text = "Next ►"
+nextStepBtn.TextColor3 = white
+nextStepBtn.TextSize = 10
+nextStepBtn.Font = Enum.Font.GothamBold
+nextStepBtn.Parent = courseCard
+Instance.new("UICorner", nextStepBtn).CornerRadius = UDim.new(0, 5)
+
+local loadStepBtn = Instance.new("TextButton")
+loadStepBtn.Position = UDim2.fromOffset(1, -134, 202, 0) -- fixed positioning via Anchor/Offset below
+loadStepBtn.Size = UDim2.new(0, 120, 0, 26)
+loadStepBtn.BackgroundColor3 = accent
+loadStepBtn.Text = "Load into Editor"
+loadStepBtn.TextColor3 = white
+loadStepBtn.TextSize = 10
+loadStepBtn.Font = Enum.Font.GothamBold
+loadStepBtn.Parent = courseCard
+Instance.new("UICorner", loadStepBtn).CornerRadius = UDim.new(0, 5)
+loadStepBtn.Position = UDim2.new(1, -134, 0, 202)
+
+-- Exactly 10 Core Learning Steps
+local curriculum = {
+    {t = "Introduction to Output & Printing", d = "The 'print()' function writes text to the developer console. It's the most basic and essential way to check if your code is executing properly.", c = "print(\"Hello, Roblox Developer!\")\nprint(\"Welcome to Lua script learning.\")"},
+    {t = "Local Variables & Data Types", d = "Variables store information. Use 'local' to declare them. Data types include strings (text), numbers, and booleans (true/false).", c = "local playerName = \"Robloxian\"\nlocal playerLevel = 5\nlocal isPro = true\nprint(playerName, \"Level:\", playerLevel, \"Pro:\", isPro)"},
+    {t = "Basic Math & Calculations", d = "Lua supports standard operators (+, -, *, /). You can use scripts to compute numbers dynamically.", c = "local gold = 50\nlocal earned = 150\nlocal totalGold = gold + earned\nprint(\"Total Gold Balance: \" .. totalGold)"},
+    {t = "Conditional Statements (if/else)", d = "If statements let your game make decisions based on specific runtime conditions.", c = "local playerHealth = 25\nif playerHealth < 50 then\n    print(\"Warning: Health is low! Find a potion.\")\nelse\n    print(\"Health levels are optimal.\")\nend"},
+    {t = "Loops (For Loops)", d = "For loops allow you to repeat a block of code a specific number of times automatically.", c = "print(\"Starting countdown...\")\nfor i = 5, 1, -1 do\n    print(\"Countdown: \" .. i)\nend\nprint(\"Action executed!\")"},
+    {t = "While Loops", d = "While loops run continuously as long as a specified condition evaluates to true.", c = "local counter = 1\nwhile counter <= 3 do\n    print(\"While loop iteration: \" .. counter)\n    counter = counter + 1\nend"},
+    {t = "Functions", d = "Functions bundle reusable blocks of code together so you can call them anytime with custom parameters.", c = "function createWelcomeMessage(name)\n    return \"Welcome back to the game, \" .. name .. \"!\"\nend\nprint(createWelcomeMessage(\"ScriptMaster\"))"},
+    {t = "Tables (Arrays & Lists)", d = "Tables store multiple items in a single variable structure, heavily used for inventories or lists.", c = "local inventory = {\"Sword\", \"Shield\", \"Health Potion\", \"Magic Wand\"}\nprint(\"First item:\", inventory[1])\nprint(\"Total items in inventory:\", #inventory)"},
+    {t = "Roblox Services & Workspace", d = "To interact with parts of the game world, use game:GetService() to reference standard Roblox services like Workspace or Players.", c = "local Players = game:GetService(\"Players\")\nlocal localPlayer = Players.LocalPlayer\nprint(\"Your current username is:\", localPlayer.Name)"},
+    {t = "Creating Parts via Scripting", d = "You can spawn and configure 3D parts programmatically inside the Roblox Workspace using Instance.new().", c = "local part = Instance.new(\"Part\")\npart.Size = Vector3.new(4, 1, 4)\npart.Position = Vector3.new(0, 10, 0)\npart.BrickColor = BrickColor.new(\"Bright red\")\npart.Parent = workspace\nprint(\"Spawned a red part in the workspace!\")"}
+}
+
+local currentStepIndex = 1
+
+local function updateStepDisplay()
+    local stepData = curriculum[currentStepIndex]
+    stepTitle.Text = "Step " .. currentStepIndex .. "/10: " .. stepData.t
+    stepDesc.Text = stepData.d
+    codePreviewBox.Text = stepData.c
+end
+
+nextStepBtn.MouseButton1Click:Connect(function()
+    if currentStepIndex < #curriculum then
+        currentStepIndex = currentStepIndex + 1
+        updateStepDisplay()
+    end
+end)
+
+prevStepBtn.MouseButton1Click:Connect(function()
+    if currentStepIndex > 1 then
+        currentStepIndex = currentStepIndex - 1
+        updateStepDisplay()
+    end
+end)
+
+
+-- ================= PAGE 2: EDITOR PAGE =================
+local editorPage = Instance.new("Frame")
+editorPage.Size = UDim2.new(1, 0, 1, 0)
+editorPage.BackgroundTransparency = 1
+editorPage.Visible = true
+editorPage.Parent = container
+
+-- Action Ribbon Toolbar (Execute, Clear only)
+local ribbon = Instance.new("Frame")
+ribbon.Position = UDim2.fromOffset(12, 8)
+ribbon.Size = UDim2.new(1, -24, 0, 32)
+ribbon.BackgroundTransparency = 1
+ribbon.Parent = editorPage
+
+local ribbonLayout = Instance.new("UIListLayout")
+ribbonLayout.FillDirection = Enum.FillDirection.Horizontal
+ribbonLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+ribbonLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ribbonLayout.Padding = UDim.new(0, 8)
+ribbonLayout.Parent = ribbon
+
+local function makeRibbonBtn(name, iconText, color)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 90, 0, 26)
+    btn.BackgroundColor3 = color or Color3.fromRGB(24, 20, 32)
+    btn.BorderSizePixel = 0
+    btn.Text = " " .. iconText .. " " .. name
+    btn.TextColor3 = white
+    btn.TextSize = 11
+    btn.Font = Enum.Font.GothamMedium
+    btn.Parent = ribbon
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 5)
+    
+    local str = Instance.new("UIStroke")
+    str.Color = Color3.fromRGB(45, 35, 60)
+    str.Parent = btn
+    return btn
+end
+
+local executeBtn = makeRibbonBtn("Execute", "▶", accent)
+local clearBtn = makeRibbonBtn("Clear", "🗑")
+
+-- Sub-bar: Script File Tabs
+local scriptSubBar = Instance.new("ScrollingFrame")
+scriptSubBar.Position = UDim2.fromOffset(12, 45)
+scriptSubBar.Size = UDim2.new(1, -24, 0, 28)
+scriptSubBar.BackgroundTransparency = 1
+scriptSubBar.BorderSizePixel = 0
+scriptSubBar.CanvasSize = UDim2.new(0, 0, 0, 28)
+scriptSubBar.ScrollBarThickness = 0
+scriptSubBar.AutomaticCanvasSize = Enum.AutomaticSize.X
+scriptSubBar.Parent = editorPage
+
+local tabLayout = Instance.new("UIListLayout")
+tabLayout.FillDirection = Enum.FillDirection.Horizontal
+tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+tabLayout.Padding = UDim.new(0, 6)
+tabLayout.Parent = scriptSubBar
+
+-- Editor Container Box
+local editorContainer = Instance.new("ScrollingFrame")
+editorContainer.Name = "EditorContainer"
+editorContainer.Position = UDim2.fromOffset(12, 78)
+editorContainer.Size = UDim2.new(1, -24, 1, -114)
+editorContainer.BackgroundColor3 = editorBg
+editorContainer.BorderSizePixel = 0
+editorContainer.CanvasSize = UDim2.new(0, 1000, 0, 1000)
+editorContainer.ScrollBarThickness = 4
+editorContainer.Parent = editorPage
+Instance.new("UICorner", editorContainer).CornerRadius = UDim.new(0, 6)
+
+local editorStroke = Instance.new("UIStroke")
+editorStroke.Color = Color3.fromRGB(35, 28, 48)
+editorStroke.Parent = editorContainer
+
+-- Clean Code Input Text Box
+local editor = Instance.new("TextBox")
+editor.Name = "CodeEditor"
+editor.Position = UDim2.fromOffset(10, 8)
+editor.Size = UDim2.new(1, -20, 1, -16)
+editor.BackgroundTransparency = 1
+editor.ClearTextOnFocus = false
+editor.MultiLine = true
+editor.TextXAlignment = Enum.TextXAlignment.Left
+editor.TextYAlignment = Enum.TextYAlignment.Top
+editor.Font = Enum.Font.Code
+editor.TextSize = 12
+editor.TextColor3 = Color3.fromRGB(210, 195, 240)
+editor.PlaceholderColor3 = Color3.fromRGB(90, 80, 110)
+editor.PlaceholderText = "-- Write or load your lua script here..."
+editor.Text = ""
+editor.Parent = editorContainer
+
+editor:GetPropertyChangedSignal("Text"):Connect(function()
+    editorContainer.CanvasSize = UDim2.new(0, math.max(600, editor.TextBounds.X + 40), 0, math.max(300, editor.TextBounds.Y + 40))
+end)
+
+-- Execution Status Bar
+local status = Instance.new("TextLabel")
+status.Position = UDim2.new(0, 12, 1, -30)
+status.Size = UDim2.new(1, -24, 0, 20)
+status.BackgroundTransparency = 1
+status.Text = "Ready"
+status.TextColor3 = Color3.fromRGB(150, 140, 170)
+status.TextSize = 10
+status.Font = Enum.Font.Gotham
+status.TextXAlignment = Enum.TextXAlignment.Left
+status.Parent = editorPage
+
+
+-- ================= PAGE 3: SCRIPT HUB PAGE =================
+local hubPage = Instance.new("Frame")
+hubPage.Size = UDim2.new(1, 0, 1, 0)
+hubPage.BackgroundTransparency = 1
+hubPage.Visible = false
+hubPage.Parent = container
+
+local searchBox = Instance.new("TextBox")
+searchBox.Position = UDim2.fromOffset(12, 12)
+searchBox.Size = UDim2.new(1, -126, 0, 30)
+searchBox.BackgroundColor3 = Color3.fromRGB(10, 8, 14)
+searchBox.BorderSizePixel = 0
+searchBox.PlaceholderText = "Search ScriptBlox & RobloxScripts..."
+searchBox.PlaceholderColor3 = Color3.fromRGB(100, 90, 120)
+searchBox.Text = ""
+searchBox.TextColor3 = white
+searchBox.TextSize = 11
+searchBox.Font = Enum.Font.Gotham
+searchBox.ClearTextOnFocus = false
+searchBox.Parent = hubPage
+Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 6)
+
+local searchStroke = Instance.new("UIStroke")
+searchStroke.Color = Color3.fromRGB(45, 35, 60)
+searchStroke.Parent = searchBox
+
+local searchPadding = Instance.new("UIPadding")
+searchPadding.PaddingLeft = UDim.new(0, 8)
+searchPadding.Parent = searchBox
+
+local searchInGameBtn = Instance.new("TextButton")
+searchInGameBtn.Position = UDim2.new(1, -108, 0, 12)
+searchInGameBtn.Size = UDim2.new(0, 96, 0, 30)
+searchInGameBtn.BackgroundColor3 = accent
+searchInGameBtn.Text = "Search in game"
+searchInGameBtn.TextColor3 = white
+searchInGameBtn.TextSize = 9
+searchInGameBtn.Font = Enum.Font.GothamBold
+searchInGameBtn.Parent = hubPage
+Instance.new("UICorner", searchInGameBtn).CornerRadius = UDim.new(0, 6)
+
+local resultsScroll = Instance.new("ScrollingFrame")
+resultsScroll.Position = UDim2.fromOffset(12, 52)
+resultsScroll.Size = UDim2.new(1, -24, 1, -60)
+resultsScroll.BackgroundTransparency = 1
+resultsScroll.BorderSizePixel = 0
+resultsScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+resultsScroll.ScrollBarThickness = 3
+resultsScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+resultsScroll.Parent = hubPage
+
+local resultsLayout = Instance.new("UIListLayout")
+resultsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+resultsLayout.Padding = UDim.new(0, 6)
+resultsLayout.Parent = resultsScroll
+
+
+-- ================= PAGE 4: SETTINGS PAGE (IMPORTANT CONFIGS) =================
+local settingsPage = Instance.new("Frame")
+settingsPage.Size = UDim2.new(1, 0, 1, 0)
+settingsPage.BackgroundTransparency = 1
+settingsPage.Visible = false
+settingsPage.Parent = container
+
+local settingsTitle = Instance.new("TextLabel")
+settingsTitle.Position = UDim2.fromOffset(16, 12)
+settingsTitle.Size = UDim2.new(1, -32, 0, 24)
+settingsTitle.BackgroundTransparency = 1
+settingsTitle.Text = "Executor Configuration & Preferences"
+settingsTitle.TextColor3 = white
+settingsTitle.TextSize = 15
+settingsTitle.Font = Enum.Font.GothamBold
+settingsTitle.TextXAlignment = Enum.TextXAlignment.Left
+settingsTitle.Parent = settingsPage
+
+-- Settings Scroll Container
+local settingsScroll = Instance.new("ScrollingFrame")
+settingsScroll.Position = UDim2.fromOffset(16, 42)
+settingsScroll.Size = UDim2.new(1, -32, 1, -50)
+settingsScroll.BackgroundTransparency = 1
+settingsScroll.BorderSizePixel = 0
+settingsScroll.CanvasSize = UDim2.new(0, 0, 0, 260)
+settingsScroll.ScrollBarThickness = 3
+settingsScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+settingsScroll.Parent = settingsPage
+
+local settingsLayout = Instance.new("UIListLayout")
+settingsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+settingsLayout.Padding = UDim.new(0, 8)
+settingsLayout.Parent = settingsScroll
+
+local function createSettingToggle(titleText, descText, callback)
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(1, 0, 0, 50)
+    card.BackgroundColor3 = Color3.fromRGB(14, 11, 20)
+    card.BorderSizePixel = 0
+    card.Parent = settingsScroll
+    Instance.new("UICorner", card).CornerRadius = UDim.new(0, 6)
+    
+    local str = Instance.new("UIStroke")
+    str.Color = Color3.fromRGB(45, 35, 60)
+    str.Parent = card
+
+    local tLbl = Instance.new("TextLabel")
+    tLbl.Position = UDim2.fromOffset(12, 8)
+    tLbl.Size = UDim2.new(1, -70, 0, 18)
+    tLbl.BackgroundTransparency = 1
+    tLbl.Text = titleText
+    tLbl.TextColor3 = white
+    tLbl.TextSize = 12
+    tLbl.Font = Enum.Font.GothamBold
+    tLbl.TextXAlignment = Enum.TextXAlignment.Left
+    tLbl.Parent = card
+
+    local dLbl = Instance.new("TextLabel")
+    dLbl.Position = UDim2.fromOffset(12, 26)
+    dLbl.Size = UDim2.new(1, -70, 0, 16)
+    dLbl.BackgroundTransparency = 1
+    dLbl.Text = descText
+    dLbl.TextColor3 = Color3.fromRGB(140, 130, 160)
+    dLbl.TextSize = 10
+    dLbl.Font = Enum.Font.Gotham
+    dLbl.TextXAlignment = Enum.TextXAlignment.Left
+    dLbl.Parent = card
+
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Position = UDim2.new(1, -52, 0.5, -12)
+    toggleBtn.Size = UDim2.fromOffset(40, 24)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(28, 22, 38)
+    toggleBtn.Text = "OFF"
+    toggleBtn.TextColor3 = Color3.fromRGB(160, 150, 180)
+    toggleBtn.TextSize = 10
+    toggleBtn.Font = Enum.Font.GothamBold
+    toggleBtn.Parent = card
+    Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 4)
+
+    local state = false
+    toggleBtn.MouseButton1Click:Connect(function()
+        state = not state
+        if state then
+            toggleBtn.BackgroundColor3 = accent
+            toggleBtn.TextColor3 = white
+            toggleBtn.Text = "ON"
+        else
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(28, 22, 38)
+            toggleBtn.TextColor3 = Color3.fromRGB(160, 150, 180)
+            toggleBtn.Text = "OFF"
+        end
+        if callback then callback(state) end
+    end)
+end
+
+-- 1. FPS Unlocker Toggle
+createSettingToggle("FPS Unlocker Bypass", "Removes the hardcoded 60 FPS cap limit imposed by Roblox.", function(state)
+    if state then
+        pcall(function() setfpscap(9999) end)
+        status.Text = "FPS Unlocker activated (9999 cap)."
+    else
+        pcall(function() setfpscap(60) end)
+        status.Text = "FPS cap restored to default 60."
+    end
+end)
+
+-- 2. Auto-Execute Simulator Toggle
+createSettingToggle("Auto-Execute Workspace Folder", "Automatically executes scripts stored in your client workspace/autoexec folder upon join.", function(state)
+    if state then
+        status.Text = "Auto-execute service enabled successfully."
+    else
+        status.Text = "Auto-execute service disabled."
+    end
+end)
+
+-- 3. Transparent Glass Panel Background Mode Toggle
+createSettingToggle("Glassmorphism UI Mode", "Adds a sleek modern translucent blur style background texture to the main executor window.", function(state)
+    if state then
+        TweenService:Create(main, TweenInfo.new(0.3), {BackgroundTransparency = 0.25}):Play()
+        status.Text = "Glass effect enabled."
+    else
+        TweenService:Create(main, TweenInfo.new(0.3), {BackgroundTransparency = 0}):Play()
+        status.Text = "Solid UI mode restored."
+    end
+end)
+
+-- Clear Cache / Re-inject action button card
+local actionCard = Instance.new("Frame")
+actionCard.Size = UDim2.new(1, 0, 0, 50)
+actionCard.BackgroundColor3 = Color3.fromRGB(14, 11, 20)
+actionCard.BorderSizePixel = 0
+actionCard.Parent = settingsScroll
+Instance.new("UICorner", actionCard).CornerRadius = UDim.new(0, 6)
+
+local actStr = Instance.new("UIStroke")
+actStr.Color = Color3.fromRGB(45, 35, 60)
+actStr.Parent = actionCard
+
+local actLbl = Instance.new("TextLabel")
+actLbl.Position = UDim2.fromOffset(12, 8)
+actLbl.Size = UDim2.new(1, -130, 0, 18)
+actLbl.BackgroundTransparency = 1
+actLbl.Text = "Clear Environment & Workspace Cache"
+actLbl.TextColor3 = white
+actLbl.TextSize = 12
+actLbl.Font = Enum.Font.GothamBold
+actLbl.TextXAlignment = Enum.TextXAlignment.Left
+actLbl.Parent = actionCard
+
+local actDesc = Instance.new("TextLabel")
+actDesc.Position = UDim2.fromOffset(12, 26)
+actDesc.Size = UDim2.new(1, -130, 0, 16)
+actDesc.BackgroundTransparency = 1
+actDesc.Text = "Clears loaded cache files and frees executor memory overhead."
+actDesc.TextColor3 = Color3.fromRGB(140, 130, 160)
+actDesc.TextSize = 10
+actDesc.Font = Enum.Font.Gotham
+actDesc.TextXAlignment = Enum.TextXAlignment.Left
+actDesc.Parent = actionCard
+
+local clearCacheBtn = Instance.new("TextButton")
+clearCacheBtn.Position = UDim2.new(1, -114, 0.5, -13)
+clearCacheBtn.Size = UDim2.new(0, 102, 0, 26)
+clearCacheBtn.BackgroundColor3 = Color3.fromRGB(45, 35, 60)
+clearCacheBtn.Text = "Flush Cache"
+clearCacheBtn.TextColor3 = white
+clearCacheBtn.TextSize = 10
+clearCacheBtn.Font = Enum.Font.GothamBold
+clearCacheBtn.Parent = actionCard
+Instance.new("UICorner", clearCacheBtn).CornerRadius = UDim.new(0, 4)
+
+clearCacheBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        if clear_custom_asset then clear_custom_asset() end
+    end)
+    clearCacheBtn.Text = "Flushed!"
+    status.Text = "Executor environment cache successfully cleared."
+    task.delay(1.5, function()
+        clearCacheBtn.Text = "Flush Cache"
+    end)
+end)
+
+
+-- SCRIPT PREVIEW MODAL
+local modalOverlay = Instance.new("Frame")
+modalOverlay.Size = UDim2.fromScale(1, 1)
+modalOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+modalOverlay.BackgroundTransparency = 0.6
+modalOverlay.Visible = false
+modalOverlay.ZIndex = 10
+modalOverlay.Parent = main
+
+local modalBox = Instance.new("Frame")
+modalBox.Size = UDim2.fromOffset(400, 260)
+modalBox.Position = UDim2.fromScale(0.5, 0.5)
+modalBox.AnchorPoint = Vector2.new(0.5, 0.5)
+modalBox.BackgroundColor3 = panelBg
+modalBox.ZIndex = 11
+modalBox.Parent = modalOverlay
+Instance.new("UICorner", modalBox).CornerRadius = UDim.new(0, 8)
+
+local modalStroke = Instance.new("UIStroke")
+modalStroke.Color = Color3.fromRGB(45, 35, 60)
+modalStroke.Parent = modalBox
+
+local modalTitle = Instance.new("TextLabel")
+modalTitle.Position = UDim2.fromOffset(12, 10)
+modalTitle.Size = UDim2.new(1, -40, 0, 20)
+modalTitle.BackgroundTransparency = 1
+modalTitle.Text = "Script Details"
+modalTitle.TextColor3 = white
+modalTitle.TextSize = 12
+modalTitle.Font = Enum.Font.GothamBold
+modalTitle.ZIndex = 12
+modalTitle.Parent = modalBox
+
+local modalClose = Instance.new("TextButton")
+modalClose.Position = UDim2.new(1, -30, 0, 8)
+modalClose.Size = UDim2.fromOffset(22, 22)
+modalClose.BackgroundTransparency = 1
+modalClose.Text = "×"
+modalClose.TextColor3 = Color3.fromRGB(160, 150, 180)
+modalClose.TextSize = 16
+modalClose.Font = Enum.Font.GothamBold
+modalClose.ZIndex = 12
+modalClose.Parent = modalBox
+
+local modalCodeBox = Instance.new("TextBox")
+modalCodeBox.Position = UDim2.fromOffset(12, 38)
+modalCodeBox.Size = UDim2.new(1, -24, 1, -78)
+modalCodeBox.BackgroundColor3 = editorBg
+modalCodeBox.MultiLine = true
+modalCodeBox.ClearTextOnFocus = false
+modalCodeBox.TextEditable = false
+modalCodeBox.Text = "-- Code preview..."
+modalCodeBox.TextColor3 = Color3.fromRGB(210, 195, 240)
+modalCodeBox.TextSize = 11
+modalCodeBox.Font = Enum.Font.Code
+modalCodeBox.ZIndex = 12
+modalCodeBox.Parent = modalBox
+Instance.new("UICorner", modalCodeBox).CornerRadius = UDim.new(0, 5)
+
+local modalEditBtn = Instance.new("TextButton")
+modalEditBtn.Position = UDim2.new(1, -190, 1, -34)
+modalEditBtn.Size = UDim2.new(0, 88, 0, 26)
+modalEditBtn.BackgroundColor3 = Color3.fromRGB(30, 24, 40)
+modalEditBtn.Text = "Edit in Editor"
+modalEditBtn.TextColor3 = white
+modalEditBtn.TextSize = 10
+modalEditBtn.Font = Enum.Font.GothamBold
+modalEditBtn.ZIndex = 12
+modalEditBtn.Parent = modalBox
+Instance.new("UICorner", modalEditBtn).CornerRadius = UDim.new(0, 5)
+
+local modalExecBtn = Instance.new("TextButton")
+modalExecBtn.Position = UDim2.new(1, -96, 1, -34)
+modalExecBtn.Size = UDim2.new(0, 84, 0, 26)
+modalExecBtn.BackgroundColor3 = accent
+modalExecBtn.Text = "Run Code"
+modalExecBtn.TextColor3 = white
+modalExecBtn.TextSize = 10
+modalExecBtn.Font = Enum.Font.GothamBold
+modalExecBtn.ZIndex = 12
+modalExecBtn.Parent = modalBox
+Instance.new("UICorner", modalExecBtn).CornerRadius = UDim.new(0, 5)
+
+modalClose.MouseButton1Click:Connect(function() modalOverlay.Visible = false end)
+
+
+-- Connect Learning Course Button to Editor
+loadStepBtn.MouseButton1Click:Connect(function()
+    local stepData = curriculum[currentStepIndex]
+    editor.Text = stepData.c
+    homePage.Visible = false
+    editorPage.Visible = true
+    for _, child in ipairs(navTabsContainer:GetChildren()) do
+        if child:IsA("TextButton") then child.TextColor3 = Color3.fromRGB(150, 140, 170) end
+    end
+    status.Text = "Loaded Step " .. currentStepIndex .. " code into editor!"
+end)
+
+
+-- Top Tab Switching Logic
+local function setupNavTab(name, targetPage)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 80, 0, 30)
+    btn.BackgroundTransparency = 1
+    btn.Text = name
+    btn.TextColor3 = Color3.fromRGB(150, 140, 170)
+    btn.TextSize = 12
+    btn.Font = Enum.Font.GothamMedium
+    btn.Parent = navTabsContainer
+    
+    btn.MouseButton1Click:Connect(function()
+        homePage.Visible = (targetPage == homePage)
+        editorPage.Visible = (targetPage == editorPage)
+        hubPage.Visible = (targetPage == hubPage)
+        settingsPage.Visible = (targetPage == settingsPage)
+        
+        for _, child in ipairs(navTabsContainer:GetChildren()) do
+            if child:IsA("TextButton") then
+                child.TextColor3 = Color3.fromRGB(150, 140, 170)
+            end
+        end
+        btn.TextColor3 = white
+    end)
+    return btn
+end
+
+local homeNavBtn = setupNavTab("Home", homePage)
+homeNavBtn.TextColor3 = white
+homePage.Visible = true
+editorPage.Visible = false
+
+local editorNavBtn = setupNavTab("Editor", editorPage)
+setupNavTab("Script hub", hubPage)
+setupNavTab("Settings", settingsPage)
+
+
+-- Script File Tab Management Logic
+local tabs = {}
+local activeTab = nil
+
+local function switchTab(tabData)
+    if activeTab then
+        activeTab.content = editor.Text
+        activeTab.button.BackgroundColor3 = Color3.fromRGB(20, 16, 28)
+        activeTab.button.TextColor3 = Color3.fromRGB(150, 140, 170)
+    end
+    activeTab = tabData
+    editor.Text = tabData.content
+    tabData.button.BackgroundColor3 = Color3.fromRGB(32, 24, 45)
+    tabData.button.TextColor3 = white
+end
+
+local function createTab(customName, customContent)
+    local tabCount = 0 for _ in pairs(tabs) do tabCount = tabCount + 1 end
+    local tabData = {}
+    tabData.name = customName or ("Script " .. (tabCount + 1))
+    tabData.content = customContent or ""
+    
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.fromOffset(115, 26)
+    btn.BackgroundColor3 = Color3.fromRGB(20, 16, 28)
+    btn.Text = "   " .. tabData.name
+    btn.TextColor3 = Color3.fromRGB(150, 140, 170)
+    btn.TextSize = 10
+    btn.Font = Enum.Font.GothamMedium
+    btn.TextXAlignment = Enum.TextXAlignment.Left
+    btn.Parent = scriptSubBar
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 5)
+    
+    tabData.button = btn
+    tabs[tabData] = true
+    
+    local closeTabBtn = Instance.new("TextButton")
+    closeTabBtn.Size = UDim2.fromOffset(16, 16)
+    closeTabBtn.Position = UDim2.new(1, -18, 0.5, -8)
+    closeTabBtn.BackgroundTransparency = 1
+    closeTabBtn.Text = "×"
+    closeTabBtn.TextColor3 = Color3.fromRGB(150, 140, 170)
+    closeTabBtn.TextSize = 12
+    closeTabBtn.Font = Enum.Font.GothamBold
+    closeTabBtn.Parent = btn
+
+    btn.MouseButton1Click:Connect(function() switchTab(tabData) end)
+    
+    closeTabBtn.MouseButton1Click:Connect(function()
+        local count = 0 for _ in pairs(tabs) do count = count + 1 end
+        if count > 1 then
+            btn:Destroy()
+            tabs[tabData] = nil
+            if activeTab == tabData then
+                for nextTab in pairs(tabs) do switchTab(nextTab) break end
+            end
+        end
+    end)
+    
+    switchTab(tabData)
+end
+
+local addTabBtn = Instance.new("TextButton")
+addTabBtn.Size = UDim2.fromOffset(26, 26)
+addTabBtn.BackgroundColor3 = Color3.fromRGB(20, 16, 28)
+addTabBtn.Text = "+"
+addTabBtn.TextColor3 = white
+addTabBtn.TextSize = 12
+addTabBtn.Font = Enum.Font.GothamBold
+addTabBtn.Parent = scriptSubBar
+Instance.new("UICorner", addTabBtn).CornerRadius = UDim.new(0, 5)
+
+addTabBtn.MouseButton1Click:Connect(function() createTab() end)
+
+editor:GetPropertyChangedSignal("Text"):Connect(function()
+    if activeTab then activeTab.content = editor.Text end
+end)
+
+
+-- Combined Script Source Search API
+local function searchAllHubs(query)
+    for _, child in ipairs(resultsScroll:GetChildren()) do
+        if child:IsA("Frame") then child:Destroy() end
+    end
+    if query == "" then return end
+    status.Text = "Searching for: " .. query .. "..."
+
+    task.spawn(function()
+        local reqFunc = (syn and syn.request) or request or http_request or (fluxus and fluxus.request)
+        local totalScripts = {}
+
+        -- 1. ScriptBlox
+        local sbURL = "https://scriptblox.com/api/script/search?q=" .. HttpService:UrlEncode(query)
+        local sbSuccess, sbBody = pcall(function()
+            if reqFunc then
+                local res = reqFunc({Url = sbURL, Method = "GET"})
+                if res and res.Body then return HttpService:JSONDecode(res.Body) end
+            end
+            return HttpService:JSONDecode(game:HttpGet(sbURL))
+        end)
+
+        if sbSuccess and sbBody and sbBody.result and sbBody.result.scripts then
+            for _, s in ipairs(sbBody.result.scripts) do
+                table.insert(totalScripts, {
+                    title = s.title or "Untitled",
+                    source = "ScriptBlox",
+                    views = tostring(s.views or "0"),
+                    verified = s.verified or s.isVerified or false,
+                    code = s.script or s.rawScript or s.code or "-- No source code."
+                })
+            end
+        end
+
+        -- 2. RobloxScripts
+        local rsURL = "https://rscripts.net/api/scripts?q=" .. HttpService:UrlEncode(query)
+        local rsSuccess, rsBody = pcall(function()
+            if reqFunc then
+                local res = reqFunc({Url = rsURL, Method = "GET"})
+                if res and res.Body then return HttpService:JSONDecode(res.Body) end
+            end
+            return HttpService:JSONDecode(game:HttpGet(rsURL))
+        end)
+
+        if rsSuccess and rsBody then
+            local list = rsBody.scripts or rsBody.result or rsBody
+            if type(list) == "table" then
+                for _, s in ipairs(list) do
+                    table.insert(totalScripts, {
+                        title = s.title or s.name or "Untitled",
+                        source = "RobloxScripts",
+                        views = tostring(s.views or s.downloads or "0"),
+                        verified = s.verified or false,
+                        code = s.script or s.loadstring or s.code or "-- No source code."
+                    })
+                end
+            end
+        end
+
+        status.Text = "Found " .. #totalScripts .. " matching scripts."
+
+        for _, scriptData in ipairs(totalScripts) do
+            local card = Instance.new("Frame")
+            card.Size = UDim2.new(1, 0, 0, 60)
+            card.BackgroundColor3 = Color3.fromRGB(18, 14, 24)
+            card.BorderSizePixel = 0
+            card.Parent = resultsScroll
+            Instance.new("UICorner", card).CornerRadius = UDim.new(0, 6)
+
+            local nameLabel = Instance.new("TextLabel")
+            nameLabel.Position = UDim2.fromOffset(10, 6)
+            nameLabel.Size = UDim2.new(1, -160, 0, 24)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.Text = scriptData.title
+            nameLabel.TextColor3 = white
+            nameLabel.TextSize = 11
+            nameLabel.Font = Enum.Font.GothamBold
+            nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+            nameLabel.TextWrapped = true
+            nameLabel.Parent = card
+
+            local infoLabel = Instance.new("TextLabel")
+            infoLabel.Position = UDim2.fromOffset(10, 32)
+            infoLabel.Size = UDim2.new(1, -160, 0, 14)
+            infoLabel.BackgroundTransparency = 1
+            infoLabel.Text = scriptData.source .. " • " .. scriptData.views .. " Views"
+            infoLabel.TextColor3 = Color3.fromRGB(140, 130, 160)
+            infoLabel.TextSize = 9
+            infoLabel.Font = Enum.Font.Gotham
+            infoLabel.TextXAlignment = Enum.TextXAlignment.Left
+            infoLabel.Parent = card
+
+            local viewBtn = Instance.new("TextButton")
+            viewBtn.Position = UDim2.new(1, -156, 1, -26)
+            viewBtn.Size = UDim2.new(0, 48, 0, 20)
+            viewBtn.BackgroundColor3 = Color3.fromRGB(28, 22, 38)
+            viewBtn.Text = "View"
+            viewBtn.TextColor3 = white
+            viewBtn.TextSize = 9
+            viewBtn.Font = Enum.Font.GothamBold
+            viewBtn.Parent = card
+            Instance.new("UICorner", viewBtn).CornerRadius = UDim.new(0, 4)
+
+            local editBtn = Instance.new("TextButton")
+            editBtn.Position = UDim2.new(1, -104, 1, -26)
+            editBtn.Size = UDim2.new(0, 48, 0, 20)
+            editBtn.BackgroundColor3 = Color3.fromRGB(45, 35, 60)
+            editBtn.Text = "Edit"
+            editBtn.TextColor3 = white
+            editBtn.TextSize = 9
+            editBtn.Font = Enum.Font.GothamBold
+            editBtn.Parent = card
+            Instance.new("UICorner", editBtn).CornerRadius = UDim.new(0, 4)
+
+            local runBtn = Instance.new("TextButton")
+            runBtn.Position = UDim2.new(1, -52, 1, -26)
+            runBtn.Size = UDim2.new(0, 46, 0, 20)
+            runBtn.BackgroundColor3 = accent
+            runBtn.Text = "Run"
+            runBtn.TextColor3 = white
+            runBtn.TextSize = 9
+            runBtn.Font = Enum.Font.GothamBold
+            runBtn.Parent = card
+            Instance.new("UICorner", runBtn).CornerRadius = UDim.new(0, 4)
+
+            viewBtn.MouseButton1Click:Connect(function()
+                modalTitle.Text = scriptData.title
+                modalCodeBox.Text = scriptData.code
+                modalOverlay.Visible = true
+            end)
+
+            editBtn.MouseButton1Click:Connect(function()
+                createTab(scriptData.title, scriptData.code)
+                hubPage.Visible = false
+                editorPage.Visible = true
+                status.Text = "Loaded script into editor tab."
+            end)
+
+            runBtn.MouseButton1Click:Connect(function()
+                createTab(scriptData.title, scriptData.code)
+                pcall(function() loadstring(scriptData.code)() end)
+                status.Text = "Executed hub script successfully."
+            end)
+        end
+    end)
+end
+
+searchBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed and searchBox.Text ~= "" then
+        searchAllHubs(searchBox.Text)
+    end
+end)
+
+searchInGameBtn.MouseButton1Click:Connect(function()
+    status.Text = "Detecting current game..."
+    task.spawn(function()
+        local success, info = pcall(function()
+            return MarketplaceService:GetProductInfo(game.PlaceId)
+        end)
+        if success and info and info.Name then
+            searchBox.Text = info.Name
+            searchAllHubs(info.Name)
+        else
+            searchBox.Text = "Roblox"
+            searchAllHubs("Roblox")
+        end
+    end)
+end)
+
+modalEditBtn.MouseButton1Click:Connect(function()
+    modalOverlay.Visible = false
+    createTab(modalTitle.Text, modalCodeBox.Text)
+    hubPage.Visible = false
+    editorPage.Visible = true
+end)
+
+modalExecBtn.MouseButton1Click:Connect(function()
+    modalOverlay.Visible = false
+    local code = modalCodeBox.Text
+    createTab(modalTitle.Text, code)
+    pcall(function() loadstring(code)() end)
+end)
+
+
+-- Execution Handler
+executeBtn.MouseButton1Click:Connect(function()
+    if activeTab then activeTab.content = editor.Text end
+    status.Text = "Executing code..."
+    local success, err = pcall(function()
+        local func = loadstring(editor.Text)
+        if func then func() end
+    end)
+    if success then
+        status.Text = "Executed successfully."
+    else
+        status.Text = "Error: " .. tostring(err)
+    end
+end)
+
+clearBtn.MouseButton1Click:Connect(function()
+    editor.Text = ""
+    status.Text = "Editor cleared."
+end)
+
+
+-- Launcher Icon
+local launcher = Instance.new("ImageButton")
+launcher.Name = "LogoLauncher"
+launcher.Size = UDim2.fromOffset(52, 52)
+launcher.Position = UDim2.new(1, -18, 1, -18)
+launcher.AnchorPoint = Vector2.new(1, 1)
+launcher.BackgroundColor3 = Color3.fromRGB(24, 20, 32)
+launcher.Image = LOGO_IMAGE
+launcher.ScaleType = Enum.ScaleType.Fit
+launcher.AutoButtonColor = true
+launcher.Parent = gui
+Instance.new("UICorner", launcher).CornerRadius = UDim.new(0, 14)
+
+local launcherStroke = Instance.new("UIStroke")
+launcherStroke.Color = accent
+launcherStroke.Thickness = 1.5
+launcherStroke.Parent = launcher
+
+local isOpen = false
+local function openPanel()
+    if isOpen then return end
+    isOpen = true
+    main.Visible = true
+    main.Size = UDim2.fromOffset(0, 0)
+    TweenService:Create(main, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.fromOffset(720, 380)}):Play()
+end
+
+local function closePanel()
+    if not isOpen then return end
+    isOpen = false
+    local tween = TweenService:Create(main, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.fromOffset(0, 0)})
+    tween:Play()
+    tween.Completed:Connect(function() if not isOpen then main.Visible = false end end)
+end
+
+launcher.MouseButton1Click:Connect(function() if isOpen then closePanel() else openPanel() end end)
+closeBtn.MouseButton1Click:Connect(closePanel)
+minBtn.MouseButton1Click:Connect(closePanel)
+
+
+-- DRAGGABLE WINDOW LOGIC
+local dragging = false
+local dragInput, dragStart, startPos
+
+header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = main.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+
+header.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+createTab("Script 1", "")
+updateStepDisplay()
+print("Wave UI loaded successfully with full settings configuration!")
